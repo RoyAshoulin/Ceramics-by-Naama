@@ -198,7 +198,6 @@
 
     /* ── MAIN ── */
     main { max-width: 100%; margin: 0; padding: 0; }
-    #shop-view { max-width: 1100px; margin: 0 auto; padding: 48px 24px 80px; }
 
     /* ── SPLASH ── */
     #splash {
@@ -206,7 +205,6 @@
       flex-direction: column;
       align-items: center;
       justify-content: flex-start;
-      min-height: 55vh;
       gap: 0;
       text-align: center;
       padding-top: 0;
@@ -308,7 +306,7 @@
     }
     .tag-tile:hover .tag-tile-label { background: rgba(44,40,37,0.55); }
     /* ── SHOP VIEW ── */
-    #shop-view { display: none; padding-bottom: 80px; }
+    #shop-view { display: none; max-width: 1100px; margin: 0 auto; padding: 48px 24px 80px; }
 
     .view-title {
       font-family: 'Parmigiano Sans', 'Assistant', sans-serif;
@@ -749,7 +747,7 @@ async function loadLogoFolder() {
     );
     if (splashFile) {
       const sh = document.getElementById('splash-hero');
-      if (sh) { sh.src = `https://drive.google.com/thumbnail?id=${splashFile.id}&sz=w1600`; sh.style.display = 'block'; }
+      if (sh) { sh.src = `https://lh3.googleusercontent.com/d/${splashFile.id}`; sh.style.display = 'block'; }
     }
 
     // Splash + header logo — file named "Logo"
@@ -757,9 +755,8 @@ async function loadLogoFolder() {
       f.name.replace(/\.[^/.]+$/, '').toLowerCase() === 'logo'
     );
     if (logoFile) {
-      const logoUrl = `https://drive.google.com/thumbnail?id=${logoFile.id}&sz=w800`;
       const sl = document.getElementById('splash-logo');
-      if (sl) { sl.src = logoUrl; sl.style.display = 'block'; }
+      if (sl) { sl.src = `https://lh3.googleusercontent.com/d/${logoFile.id}`; sl.style.display = 'block'; }
     }
 
     // Splash text image — file named "Text"
@@ -768,24 +765,22 @@ async function loadLogoFolder() {
     );
     if (textFile) {
       const tl = document.getElementById('splash-text-img');
-      tl.src = `https://drive.google.com/thumbnail?id=${textFile.id}&sz=w1200`;
+      tl.src = `https://lh3.googleusercontent.com/d/${textFile.id}`;
       tl.style.display = 'block';
     } else {
       document.getElementById('splash-soon').style.display = 'block';
     }
 
-    // Story page images — preload so they show when page is revealed
+    // Story page images
     const storyHero = document.getElementById('story-splash-img');
     const storyText = document.getElementById('story-text-img');
     if (splashFile && storyHero) {
-      const splashUrl = `https://drive.google.com/thumbnail?id=${splashFile.id}&sz=w1600`;
-      storyHero.setAttribute('data-src', splashUrl);
-      storyHero.src = splashUrl;
+      storyHero.src = `https://lh3.googleusercontent.com/d/${splashFile.id}`;
+      console.log('Story hero set, file:', splashFile.name);
     }
     if (textFile && storyText) {
-      const textUrl = `https://drive.google.com/thumbnail?id=${textFile.id}&sz=w1200`;
-      storyText.setAttribute('data-src', textUrl);
-      storyText.src = textUrl;
+      storyText.src = `https://lh3.googleusercontent.com/d/${textFile.id}`;
+      console.log('Story text set, file:', textFile.name);
     }
 
     // Contact icons — WA, IG, Mail images from logo folder
@@ -794,18 +789,22 @@ async function loadLogoFolder() {
     const mailFile = files.find(f => f.name.replace(/\.[^/.]+$/, '').toLowerCase() === 'mail');
 
     function setIconSrc(ids, fileObj) {
-      if (!fileObj) return;
-      const src = `https://drive.google.com/thumbnail?id=${fileObj.id}&sz=w100`;
+      if (!fileObj) { console.warn('Icon file not found'); return; }
+      const src = `https://lh3.googleusercontent.com/d/${fileObj.id}`;
       ids.forEach(id => {
         const el = document.getElementById(id);
         if (el) {
-          el.innerHTML = `<img src="${src}" style="width:36px;height:36px;border-radius:8px;object-fit:cover;" alt=""/>`;
+          el.innerHTML = `<img src="${src}" style="width:36px;height:36px;border-radius:8px;object-fit:cover;display:block;" alt="" onerror="this.parentElement.innerHTML='?'"/>`;
+          console.log('Setting icon', id, 'to', src);
+        } else {
+          console.warn('Icon element not found:', id);
         }
       });
     }
-    setIconSrc(['footer-wa',   'lightbox-whatsapp'], waFile);
-    setIconSrc(['footer-ig',   'lightbox-instagram'], igFile);
-    setIconSrc(['footer-mail'],                       mailFile);
+    console.log('Icon files found — WA:', !!waFile, 'IG:', !!igFile, 'Mail:', !!mailFile);
+    setIconSrc(['footer-wa', 'lightbox-whatsapp'], waFile);
+    setIconSrc(['footer-ig', 'lightbox-instagram'], igFile);
+    setIconSrc(['footer-mail'], mailFile);
 
   } catch(e) {
     console.error('loadLogoFolder error:', e);
