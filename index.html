@@ -44,6 +44,15 @@
       background: var(--bg);
       z-index: 100;
       direction: ltr;
+      gap: 8px;
+      min-width: 0;
+    }
+    #header-nav {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      direction: ltr;
+      flex-shrink: 0;
     }
 
     #logo-wrap {
@@ -189,7 +198,6 @@
 
     /* ── MAIN ── */
     main { max-width: 100%; margin: 0; padding: 0; }
-    #shop-view { max-width: 1100px; margin: 0 auto; padding: 48px 24px 80px; }
 
     /* ── SPLASH ── */
     #splash {
@@ -201,17 +209,7 @@
       text-align: center;
       padding-top: 0;
     }
-    #splash-hero {
-      width: 75vw;
-      height: auto;
-      object-fit: contain;
-      display: none;
-      margin-top: 0;
-    }
-    @media (max-width: 768px) {
-      #splash-hero { width: 100vw; }
-    }
-    #splash-logo {
+#splash-logo {
       width: 50vw;
       height: auto;
       object-fit: contain;
@@ -221,28 +219,65 @@
     @media (max-width: 768px) {
       #splash-logo { width: 85vw; }
     }
-    #splash-text-img {
-      width: 50vw;
-      height: auto;
-      object-fit: contain;
-      display: none;
-    }
-    @media (max-width: 768px) {
-      #splash-text-img {
-        width: 100vw;
-      }
-    }
-    #splash-soon {
-      font-family: 'Parmigiano Sans', 'Assistant', sans-serif;
-      font-size: clamp(1.8rem, 5vw, 3rem);
-      font-weight: 300;
-      letter-spacing: 0.12em;
-      color: var(--muted);
-      display: none;
-    }
 
+
+    /* ── TAG GALLERY on splash ── */
+    #tag-gallery {
+      width: 100%;
+      padding: 40px 24px 60px;
+      display: none;
+    }
+    @media (max-width: 600px) {
+      #tag-gallery { padding: 0 0 40px; }
+    }
+    .tag-gallery-grid {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 20px;
+      max-width: 980px;
+      margin: 0 auto;
+    }
+    .tag-tile {
+      position: relative;
+      border-radius: 8px;
+      overflow: hidden;
+      cursor: pointer;
+      width: 220px;
+      height: 220px;
+      flex-shrink: 0;
+      background: var(--border);
+      transition: transform 0.25s, box-shadow 0.25s;
+    }
+    @media (max-width: 600px) {
+      .tag-gallery-grid { gap: 6px; max-width: 100%; padding: 0 6px; }
+      .tag-tile { width: calc(100vw - 12px); height: 56vw; border-radius: 6px; }
+    }
+    .tag-tile:hover { transform: translateY(-4px); box-shadow: 0 12px 32px rgba(0,0,0,0.15); }
+    .tag-tile img {
+      width: 100%; height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    .tag-tile-label {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(44,40,37,0.38);
+      color: white;
+      font-family: 'Parmigiano Sans', 'Assistant', sans-serif;
+      font-size: 1.3rem;
+      font-weight: 400;
+      letter-spacing: 0.08em;
+      text-align: center;
+      transition: background 0.2s;
+      direction: rtl;
+    }
+    .tag-tile:hover .tag-tile-label { background: rgba(44,40,37,0.55); }
     /* ── SHOP VIEW ── */
-    #shop-view { display: none; padding-bottom: 80px; }
+    #shop-view { display: none; max-width: 1100px; margin: 0 auto; padding: 48px 24px 80px; }
 
     .view-title {
       font-family: 'Parmigiano Sans', 'Assistant', sans-serif;
@@ -346,9 +381,10 @@
     /* ── MOBILE ── */
     @media (max-width: 600px) {
       header { padding: 10px 12px; gap: 6px; }
-      #header-home-text { font-size: 0.78rem; letter-spacing: 0.02em; }
       #site-logo { height: 38px; max-width: 120px; }
+      #header-home-text { font-size: 0.78rem; letter-spacing: 0.02em; }
       .shop-btn { padding: 7px 10px; font-size: 0.78rem; }
+      .shop-btn svg { width: 10px; height: 10px; }
       .story-btn { padding: 7px 10px; font-size: 0.78rem; }
       footer { padding: 16px 20px; }
     }
@@ -387,16 +423,16 @@ const CONFIG = {
     <span id="header-home-text">Ceramics by Naama</span>
   </div>
 
-  <div id="header-nav" style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
+  <div id="header-nav">
     <button class="story-btn" id="story-btn" onclick="showStory()">הסיפור שלי</button>
     <div class="shop-dropdown" id="shop-dropdown">
-    <button class="shop-btn" id="shop-btn" onclick="toggleShopMenu()">
-      גלריה
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
-    </button>
-    <div class="dropdown-menu" id="dropdown-menu">
-      <!-- populated dynamically -->
-    </div>
+      <button class="shop-btn" id="shop-btn" onclick="toggleShopMenu()">
+        גלריה
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+      <div class="dropdown-menu" id="dropdown-menu">
+        <!-- populated dynamically -->
+      </div>
     </div>
   </div>
 </header>
@@ -405,17 +441,14 @@ const CONFIG = {
   <!-- Splash / home -->
   <div id="splash">
     <img id="splash-logo" src="" alt="Ceramics by Naama"/>
-    <img id="splash-hero" src="" alt=""/>
-    <img id="splash-text-img" src="" alt=""/>
-    <div id="splash-soon">בקרוב...</div>
   </div>
+  <div id="tag-gallery"><div class="tag-gallery-grid" id="tag-gallery-grid"></div></div>
 
   <!-- Story page -->
-  <div id="story-view" style="display:none;flex-direction:column;align-items:center;width:100%;padding-top:40px;padding-bottom:60px;">
+  <div id="story-view" style="display:none;flex-direction:column;align-items:center;width:100%;padding-bottom:60px;padding-top:40px;">
     <img id="story-splash-img" src="" style="width:75vw;height:auto;object-fit:contain;" alt=""/>
     <img id="story-text-img" src="" style="width:50vw;height:auto;object-fit:contain;" alt=""/>
   </div>
-
   <!-- Shop tag view -->
   <div id="shop-view">
     <div class="view-title" id="view-title"></div>
@@ -437,10 +470,7 @@ const CONFIG = {
       <div id="lightbox-actions" style="display:flex;flex-direction:column;align-items:center;flex-shrink:0;gap:8px;order:2;">
         <div id="lightbox-contact-label" style="font-family:'Parmigiano Sans','Assistant',sans-serif;font-size:0.82rem;color:#8c8078;text-align:center;">לפרטים נוספים:</div>
         <div style="display:flex;gap:10px;">
-          <a id="lightbox-whatsapp" href="#" target="_blank" title="WhatsApp" class="icon-whatsapp"><svg viewBox="0 0 48 48" width="26" height="26" xmlns="http://www.w3.org/2000/svg">
-  <rect width="48" height="48" rx="10" fill="#25D366"/>
-  <path d="M24 8C15.163 8 8 15.163 8 24c0 2.837.74 5.5 2.033 7.817L8 40l8.418-2.007A15.93 15.93 0 0 0 24 40c8.837 0 16-7.163 16-16S32.837 8 24 8zm0 2.4c7.512 0 13.6 6.088 13.6 13.6S31.512 37.6 24 37.6a13.56 13.56 0 0 1-7.04-1.965l-.502-.307-5.198 1.234 1.272-5.072-.332-.534A13.54 13.54 0 0 1 10.4 24C10.4 16.488 16.488 10.4 24 10.4zm-3.48 5.04c-.28 0-.735.105-1.12.525l-.01.01c-.385.42-1.47 1.435-1.47 3.5 0 2.08 1.505 4.09 1.715 4.37.21.28 2.93 4.67 7.19 6.37 1.007.397 1.794.634 2.407.812 1.012.288 1.934.247 2.663.15.812-.108 2.502-1.023 2.857-2.01.354-.988.354-1.834.247-2.012-.105-.177-.385-.282-.805-.49-.42-.21-2.485-1.227-2.87-1.365-.385-.14-.665-.21-.945.21-.28.42-1.085 1.365-1.33 1.645-.245.28-.49.315-.91.105-.42-.21-1.77-.653-3.372-2.082-1.246-1.113-2.086-2.487-2.331-2.907-.245-.42-.026-.647.184-.857.188-.188.42-.49.63-.735.21-.245.28-.42.42-.7.14-.28.07-.525-.035-.735-.105-.21-.933-2.257-1.292-3.08-.312-.78-.63-.676-.875-.687l-.806-.013z" fill="white"/>
-</svg></a>
+          <a id="lightbox-whatsapp" href="#" target="_blank" title="WhatsApp" class="icon-whatsapp"></a>
           <a id="lightbox-instagram" href="https://ig.me/m/naama_strauch" target="_blank" title="Instagram" class="icon-instagram"></a>
         </div>
       </div>
@@ -450,36 +480,9 @@ const CONFIG = {
 
 <footer>
   <div class="footer-social">
-    <a id="footer-wa" class="icon-whatsapp" href="https://wa.me/972526175449" target="_blank" title="WhatsApp">
-      <svg viewBox="0 0 48 48" width="26" height="26" xmlns="http://www.w3.org/2000/svg">
-  <rect width="48" height="48" rx="10" fill="#25D366"/>
-  <path d="M24 8C15.163 8 8 15.163 8 24c0 2.837.74 5.5 2.033 7.817L8 40l8.418-2.007A15.93 15.93 0 0 0 24 40c8.837 0 16-7.163 16-16S32.837 8 24 8zm0 2.4c7.512 0 13.6 6.088 13.6 13.6S31.512 37.6 24 37.6a13.56 13.56 0 0 1-7.04-1.965l-.502-.307-5.198 1.234 1.272-5.072-.332-.534A13.54 13.54 0 0 1 10.4 24C10.4 16.488 16.488 10.4 24 10.4zm-3.48 5.04c-.28 0-.735.105-1.12.525l-.01.01c-.385.42-1.47 1.435-1.47 3.5 0 2.08 1.505 4.09 1.715 4.37.21.28 2.93 4.67 7.19 6.37 1.007.397 1.794.634 2.407.812 1.012.288 1.934.247 2.663.15.812-.108 2.502-1.023 2.857-2.01.354-.988.354-1.834.247-2.012-.105-.177-.385-.282-.805-.49-.42-.21-2.485-1.227-2.87-1.365-.385-.14-.665-.21-.945.21-.28.42-1.085 1.365-1.33 1.645-.245.28-.49.315-.91.105-.42-.21-1.77-.653-3.372-2.082-1.246-1.113-2.086-2.487-2.331-2.907-.245-.42-.026-.647.184-.857.188-.188.42-.49.63-.735.21-.245.28-.42.42-.7.14-.28.07-.525-.035-.735-.105-.21-.933-2.257-1.292-3.08-.312-.78-.63-.676-.875-.687l-.806-.013z" fill="white"/>
-</svg>
-    </a>
-    <a id="footer-ig" class="icon-instagram" href="https://ig.me/m/naama_strauch" target="_blank" title="Instagram">
-      <svg viewBox="0 0 48 48" width="26" height="26" xmlns="http://www.w3.org/2000/svg">
-  <defs>
-    <radialGradient id="ig-grad" cx="30%" cy="107%" r="150%">
-      <stop offset="0%" stop-color="#fdf497"/>
-      <stop offset="5%" stop-color="#fdf497"/>
-      <stop offset="45%" stop-color="#fd5949"/>
-      <stop offset="60%" stop-color="#d6249f"/>
-      <stop offset="90%" stop-color="#285AEB"/>
-    </radialGradient>
-  </defs>
-  <rect width="48" height="48" rx="10" fill="url(#ig-grad)"/>
-  <rect x="13" y="13" width="22" height="22" rx="6" fill="none" stroke="white" stroke-width="2.5"/>
-  <circle cx="24" cy="24" r="5.5" fill="none" stroke="white" stroke-width="2.5"/>
-  <circle cx="31.5" cy="16.5" r="1.5" fill="white"/>
-</svg>
-    </a>
-    <a class="icon-email" id="footer-mail" href="#" title="Email">
-      <svg viewBox="0 0 48 48" width="26" height="26" xmlns="http://www.w3.org/2000/svg">
-  <rect width="48" height="48" rx="10" fill="#f0a030"/>
-  <rect x="9" y="15" width="30" height="20" rx="3" fill="white"/>
-  <polyline points="9,15 24,27 39,15" fill="none" stroke="#f0a030" stroke-width="2.5" stroke-linecap="round"/>
-</svg>
-    </a>
+    <a id="footer-wa" class="icon-whatsapp" href="https://wa.me/972526175449" target="_blank" title="WhatsApp"></a>
+    <a id="footer-ig" class="icon-instagram" href="https://ig.me/m/naama_strauch" target="_blank" title="Instagram"></a>
+    <a class="icon-email" id="footer-mail" href="#" title="Email"></a>
   </div>
   <div id="footer-credit"></div>
 </footer>
@@ -550,6 +553,8 @@ async function loadAllItems() {
 // ── Build dropdown ────────────────────────────────────────────────────────
 function buildDropdown() {
   const tags = [...new Set(allItems.map(i => i.tag))].sort();
+
+  // Dropdown menu
   const menu = document.getElementById('dropdown-menu');
   menu.innerHTML = '';
   tags.forEach(tag => {
@@ -558,6 +563,27 @@ function buildDropdown() {
     btn.dataset.tag = tag;
     btn.onclick = () => showTag(tag);
     menu.appendChild(btn);
+  });
+
+  // Tag gallery on splash
+  const galleryGrid = document.getElementById('tag-gallery-grid');
+  galleryGrid.innerHTML = '';
+  tags.forEach(tag => {
+    const tagItems = allItems.filter(i => i.tag === tag);
+    if (!tagItems.length) return;
+    // Pick a random available item, fall back to any
+    const available = tagItems.filter(i => i.units !== 'sold');
+    const pick = available.length
+      ? available[Math.floor(Math.random() * available.length)]
+      : tagItems[Math.floor(Math.random() * tagItems.length)];
+
+    const tile = document.createElement('div');
+    tile.className = 'tag-tile';
+    tile.innerHTML = `
+      <img src="${pick.img}" alt="${tag}" loading="lazy"/>
+      <div class="tag-tile-label">${tag.charAt(0).toUpperCase() + tag.slice(1)}</div>`;
+    tile.addEventListener('click', () => showTag(tag));
+    galleryGrid.appendChild(tile);
   });
 }
 
@@ -575,19 +601,30 @@ document.addEventListener('click', e => {
 
 // ── Show splash ───────────────────────────────────────────────────────────
 function showSplash() {
-  document.getElementById('splash').style.display    = 'flex';
-  document.getElementById('shop-view').style.display = 'none';
+  document.getElementById('splash').style.display      = 'flex';
+  document.getElementById('tag-gallery').style.display = 'block';
+  document.getElementById('shop-view').style.display   = 'none';
+  document.getElementById('story-view').style.display  = 'none';
   document.querySelectorAll('.dropdown-menu button').forEach(b => b.classList.remove('active'));
+  document.querySelector('.story-btn').classList.remove('active');
   document.getElementById('shop-btn').classList.remove('open');
   document.getElementById('dropdown-menu').classList.remove('open');
 }
 
-// ── Show story ───────────────────────────────────────────────────────────────
+// ── Show story page ───────────────────────────────────────────────
 function showStory() {
   document.getElementById('splash').style.display      = 'none';
   document.getElementById('tag-gallery').style.display = 'none';
   document.getElementById('shop-view').style.display   = 'none';
-  document.getElementById('story-view').style.display  = 'flex';
+  const sv = document.getElementById('story-view');
+  sv.style.display = 'flex';
+  // Force images to load from data-src if not yet loaded
+  ['story-splash-img','story-text-img'].forEach(id => {
+    const img = document.getElementById(id);
+    if (img && img.dataset.src && !img.src.includes('drive.google')) {
+      img.src = img.dataset.src;
+    }
+  });
   document.querySelector('.story-btn').classList.add('active');
   document.querySelectorAll('.dropdown-menu button').forEach(b => b.classList.remove('active'));
   document.getElementById('shop-btn').classList.remove('open');
@@ -615,8 +652,11 @@ function showTag(tag) {
   } else {
     items.forEach(item => grid.appendChild(makeCard(item)));
   }
-  document.getElementById('splash').style.display    = 'none';
-  document.getElementById('shop-view').style.display = 'block';
+  document.getElementById('splash').style.display      = 'none';
+  document.getElementById('tag-gallery').style.display = 'none';
+  document.getElementById('story-view').style.display  = 'none';
+  document.getElementById('shop-view').style.display   = 'block';
+  document.querySelector('.story-btn').classList.remove('active');
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
@@ -672,42 +712,36 @@ async function loadLogoFolder() {
   try {
     const files = await fetchDriveImages(CONFIG.logoFolderId);
 
-    // Splash hero image — file named "Splash image"
+
+
+    // Splash image — used in story page only
     const splashFile = files.find(f =>
       f.name.replace(/\.[^/.]+$/, '').toLowerCase() === 'splash image'
     );
-    if (splashFile) {
-      const sh = document.getElementById('splash-hero');
-      if (sh) { sh.src = `https://drive.google.com/thumbnail?id=${splashFile.id}&sz=w1600`; sh.style.display = 'block'; }
-    }
 
-    // Splash + header logo — file named "Logo"
+    // Logo — file named "Logo"
     const logoFile = files.find(f =>
       f.name.replace(/\.[^/.]+$/, '').toLowerCase() === 'logo'
     );
     if (logoFile) {
-      const logoUrl = `https://drive.google.com/thumbnail?id=${logoFile.id}&sz=w800`;
       const sl = document.getElementById('splash-logo');
-      if (sl) { sl.src = logoUrl; sl.style.display = 'block'; }
+      if (sl) { sl.src = `https://drive.google.com/thumbnail?id=${logoFile.id}&sz=w1200`; sl.style.display = 'block'; }
     }
 
-    // Splash text image — file named "Text"
+    // Text image — used in story page only
     const textFile = files.find(f =>
       f.name.replace(/\.[^/.]+$/, '').toLowerCase() === 'text'
     );
-    if (textFile) {
-      const tl = document.getElementById('splash-text-img');
-      tl.src = `https://drive.google.com/thumbnail?id=${textFile.id}&sz=w1200`;
-      tl.style.display = 'block';
-    } else {
-      document.getElementById('splash-soon').style.display = 'block';
-    }
 
-    // Story images
+    // Story page images
     const storyHero = document.getElementById('story-splash-img');
     const storyText = document.getElementById('story-text-img');
-    if (splashFile && storyHero) storyHero.src = `https://drive.google.com/thumbnail?id=${splashFile.id}&sz=w1600`;
-    if (textFile   && storyText) storyText.src = `https://drive.google.com/thumbnail?id=${textFile.id}&sz=w1200`;
+    if (splashFile && storyHero) {
+      storyHero.src = `https://drive.google.com/thumbnail?id=${splashFile.id}&sz=w1600`;
+    }
+    if (textFile && storyText) {
+      storyText.src = `https://drive.google.com/thumbnail?id=${textFile.id}&sz=w1200`;
+    }
 
     // Contact icons — WA, IG, Mail images from logo folder
     const waFile   = files.find(f => f.name.replace(/\.[^/.]+$/, '').toLowerCase() === 'wa');
@@ -715,22 +749,25 @@ async function loadLogoFolder() {
     const mailFile = files.find(f => f.name.replace(/\.[^/.]+$/, '').toLowerCase() === 'mail');
 
     function setIconSrc(ids, fileObj) {
-      if (!fileObj) return;
-      const src = `https://drive.google.com/thumbnail?id=${fileObj.id}&sz=w100`;
+      if (!fileObj) { console.warn('Icon file not found'); return; }
+      const src = `https://drive.google.com/thumbnail?id=${fileObj.id}&sz=w200`;
       ids.forEach(id => {
         const el = document.getElementById(id);
         if (el) {
-          el.innerHTML = `<img src="${src}" style="width:36px;height:36px;border-radius:8px;object-fit:cover;" alt=""/>`;
+          el.innerHTML = `<img src="${src}" style="width:36px;height:36px;border-radius:8px;object-fit:cover;display:block;" alt="" onerror="this.parentElement.innerHTML='?'"/>`;
+        } else {
+          console.warn('Icon element not found:', id);
         }
       });
     }
-    setIconSrc(['footer-wa',   'lightbox-whatsapp'], waFile);
-    setIconSrc(['footer-ig',   'lightbox-instagram'], igFile);
-    setIconSrc(['footer-mail'],                       mailFile);
+    setIconSrc(['footer-wa', 'lightbox-whatsapp'], waFile);
+    setIconSrc(['footer-ig', 'lightbox-instagram'], igFile);
+    setIconSrc(['footer-mail'], mailFile);
 
   } catch(e) {
-    document.getElementById('header-name').style.display  = 'block';
-    document.getElementById('splash-soon').style.display  = 'block';
+    console.error('loadLogoFolder error:', e);
+    const sn = document.getElementById('splash-soon');
+    if (sn) sn.style.display = 'block';
   }
 }
 
