@@ -278,7 +278,8 @@
       transition: transform 0.25s, box-shadow 0.25s;
     }
     @media (max-width: 600px) {
-      .tag-tile { width: calc(50vw - 32px); height: calc(50vw - 32px); }
+      .tag-gallery-grid { gap: 0; max-width: 100%; }
+      .tag-tile { width: 100vw; height: 56vw; border-radius: 0; }
     }
     .tag-tile:hover { transform: translateY(-4px); box-shadow: 0 12px 32px rgba(0,0,0,0.15); }
     .tag-tile img {
@@ -472,9 +473,9 @@ const CONFIG = {
   <div id="tag-gallery"><div class="tag-gallery-grid" id="tag-gallery-grid"></div></div>
 
   <!-- Story page -->
-  <div id="story-view" style="display:none;flex-direction:column;align-items:center;width:100%;padding-bottom:60px;">
-    <img id="story-splash-img" src="" style="width:75vw;height:auto;object-fit:contain;display:none;" alt=""/>
-    <img id="story-text-img"   src="" style="width:50vw;height:auto;object-fit:contain;display:none;margin-top:0;" alt=""/>
+  <div id="story-view" style="display:none;flex-direction:column;align-items:center;width:100%;padding-bottom:60px;padding-top:40px;">
+    <img id="story-splash-img" src="" style="width:75vw;height:auto;object-fit:contain;" alt=""/>
+    <img id="story-text-img" src="" style="width:50vw;height:auto;object-fit:contain;" alt=""/>
   </div>
   <!-- Shop tag view -->
   <div id="shop-view">
@@ -497,10 +498,7 @@ const CONFIG = {
       <div id="lightbox-actions" style="display:flex;flex-direction:column;align-items:center;flex-shrink:0;gap:8px;order:2;">
         <div id="lightbox-contact-label" style="font-family:'Parmigiano Sans','Assistant',sans-serif;font-size:0.82rem;color:#8c8078;text-align:center;">לפרטים נוספים:</div>
         <div style="display:flex;gap:10px;">
-          <a id="lightbox-whatsapp" href="#" target="_blank" title="WhatsApp" class="icon-whatsapp"><svg viewBox="0 0 48 48" width="26" height="26" xmlns="http://www.w3.org/2000/svg">
-  <rect width="48" height="48" rx="10" fill="#25D366"/>
-  <path d="M24 8C15.163 8 8 15.163 8 24c0 2.837.74 5.5 2.033 7.817L8 40l8.418-2.007A15.93 15.93 0 0 0 24 40c8.837 0 16-7.163 16-16S32.837 8 24 8zm0 2.4c7.512 0 13.6 6.088 13.6 13.6S31.512 37.6 24 37.6a13.56 13.56 0 0 1-7.04-1.965l-.502-.307-5.198 1.234 1.272-5.072-.332-.534A13.54 13.54 0 0 1 10.4 24C10.4 16.488 16.488 10.4 24 10.4zm-3.48 5.04c-.28 0-.735.105-1.12.525l-.01.01c-.385.42-1.47 1.435-1.47 3.5 0 2.08 1.505 4.09 1.715 4.37.21.28 2.93 4.67 7.19 6.37 1.007.397 1.794.634 2.407.812 1.012.288 1.934.247 2.663.15.812-.108 2.502-1.023 2.857-2.01.354-.988.354-1.834.247-2.012-.105-.177-.385-.282-.805-.49-.42-.21-2.485-1.227-2.87-1.365-.385-.14-.665-.21-.945.21-.28.42-1.085 1.365-1.33 1.645-.245.28-.49.315-.91.105-.42-.21-1.77-.653-3.372-2.082-1.246-1.113-2.086-2.487-2.331-2.907-.245-.42-.026-.647.184-.857.188-.188.42-.49.63-.735.21-.245.28-.42.42-.7.14-.28.07-.525-.035-.735-.105-.21-.933-2.257-1.292-3.08-.312-.78-.63-.676-.875-.687l-.806-.013z" fill="white"/>
-</svg></a>
+          <a id="lightbox-whatsapp" href="#" target="_blank" title="WhatsApp" class="icon-whatsapp"></a>
           <a id="lightbox-instagram" href="https://ig.me/m/naama_strauch" target="_blank" title="Instagram" class="icon-instagram"></a>
         </div>
       </div>
@@ -510,36 +508,9 @@ const CONFIG = {
 
 <footer>
   <div class="footer-social">
-    <a id="footer-wa" class="icon-whatsapp" href="https://wa.me/972526175449" target="_blank" title="WhatsApp">
-      <svg viewBox="0 0 48 48" width="26" height="26" xmlns="http://www.w3.org/2000/svg">
-  <rect width="48" height="48" rx="10" fill="#25D366"/>
-  <path d="M24 8C15.163 8 8 15.163 8 24c0 2.837.74 5.5 2.033 7.817L8 40l8.418-2.007A15.93 15.93 0 0 0 24 40c8.837 0 16-7.163 16-16S32.837 8 24 8zm0 2.4c7.512 0 13.6 6.088 13.6 13.6S31.512 37.6 24 37.6a13.56 13.56 0 0 1-7.04-1.965l-.502-.307-5.198 1.234 1.272-5.072-.332-.534A13.54 13.54 0 0 1 10.4 24C10.4 16.488 16.488 10.4 24 10.4zm-3.48 5.04c-.28 0-.735.105-1.12.525l-.01.01c-.385.42-1.47 1.435-1.47 3.5 0 2.08 1.505 4.09 1.715 4.37.21.28 2.93 4.67 7.19 6.37 1.007.397 1.794.634 2.407.812 1.012.288 1.934.247 2.663.15.812-.108 2.502-1.023 2.857-2.01.354-.988.354-1.834.247-2.012-.105-.177-.385-.282-.805-.49-.42-.21-2.485-1.227-2.87-1.365-.385-.14-.665-.21-.945.21-.28.42-1.085 1.365-1.33 1.645-.245.28-.49.315-.91.105-.42-.21-1.77-.653-3.372-2.082-1.246-1.113-2.086-2.487-2.331-2.907-.245-.42-.026-.647.184-.857.188-.188.42-.49.63-.735.21-.245.28-.42.42-.7.14-.28.07-.525-.035-.735-.105-.21-.933-2.257-1.292-3.08-.312-.78-.63-.676-.875-.687l-.806-.013z" fill="white"/>
-</svg>
-    </a>
-    <a id="footer-ig" class="icon-instagram" href="https://ig.me/m/naama_strauch" target="_blank" title="Instagram">
-      <svg viewBox="0 0 48 48" width="26" height="26" xmlns="http://www.w3.org/2000/svg">
-  <defs>
-    <radialGradient id="ig-grad" cx="30%" cy="107%" r="150%">
-      <stop offset="0%" stop-color="#fdf497"/>
-      <stop offset="5%" stop-color="#fdf497"/>
-      <stop offset="45%" stop-color="#fd5949"/>
-      <stop offset="60%" stop-color="#d6249f"/>
-      <stop offset="90%" stop-color="#285AEB"/>
-    </radialGradient>
-  </defs>
-  <rect width="48" height="48" rx="10" fill="url(#ig-grad)"/>
-  <rect x="13" y="13" width="22" height="22" rx="6" fill="none" stroke="white" stroke-width="2.5"/>
-  <circle cx="24" cy="24" r="5.5" fill="none" stroke="white" stroke-width="2.5"/>
-  <circle cx="31.5" cy="16.5" r="1.5" fill="white"/>
-</svg>
-    </a>
-    <a class="icon-email" id="footer-mail" href="#" title="Email">
-      <svg viewBox="0 0 48 48" width="26" height="26" xmlns="http://www.w3.org/2000/svg">
-  <rect width="48" height="48" rx="10" fill="#f0a030"/>
-  <rect x="9" y="15" width="30" height="20" rx="3" fill="white"/>
-  <polyline points="9,15 24,27 39,15" fill="none" stroke="#f0a030" stroke-width="2.5" stroke-linecap="round"/>
-</svg>
-    </a>
+    <a id="footer-wa" class="icon-whatsapp" href="https://wa.me/972526175449" target="_blank" title="WhatsApp"></a>
+    <a id="footer-ig" class="icon-instagram" href="https://ig.me/m/naama_strauch" target="_blank" title="Instagram"></a>
+    <a class="icon-email" id="footer-mail" href="#" title="Email"></a>
   </div>
   <div id="footer-credit"></div>
 </footer>
@@ -792,16 +763,14 @@ async function loadLogoFolder() {
       document.getElementById('splash-soon').style.display = 'block';
     }
 
-    // Story page images — reuse splash + text images
+    // Story page images — Splash image (75vw) + Text image (50vw)
     const storyHero = document.getElementById('story-splash-img');
     const storyText = document.getElementById('story-text-img');
     if (splashFile && storyHero) {
       storyHero.src = `https://drive.google.com/thumbnail?id=${splashFile.id}&sz=w1600`;
-      storyHero.style.display = 'block';
     }
     if (textFile && storyText) {
       storyText.src = `https://drive.google.com/thumbnail?id=${textFile.id}&sz=w1200`;
-      storyText.style.display = 'block';
     }
 
     // Contact icons — WA, IG, Mail images from logo folder
