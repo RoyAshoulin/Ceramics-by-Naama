@@ -660,7 +660,7 @@ function showTag(tag) {
 // ── Make card ─────────────────────────────────────────────────────────────
 function makeCard({ name, img, units, price }) {
   const meta         = STOCK_META[units];
-  const priceDisplay = price === 'N/A' ? '' : `ליחידה ₪${price}`;
+  const priceDisplay = price === 'N/A' ? '' : `₪${price} ליחידה`;
   const card         = document.createElement('div');
   card.className     = 'card' + (units === 'sold' ? ' is-sold' : '');
   card.innerHTML     = `
@@ -682,7 +682,7 @@ function makeCard({ name, img, units, price }) {
 function openLightbox({ name, img, units, price }) {
   document.getElementById('lightbox-img').src           = img;
   document.getElementById('lightbox-name').textContent  = name;
-  document.getElementById('lightbox-price').textContent = price === 'N/A' ? '' : `ליחידה ₪${price}`;
+  document.getElementById('lightbox-price').textContent = price === 'N/A' ? '' : ` ₪${price} ליחידה`;
   const statusEl = document.getElementById('lightbox-status');
   statusEl.textContent = stockStatusText(units);
   statusEl.style.color = units === 'sold' ? '#7a4a4a' : '#4a7a4a';
