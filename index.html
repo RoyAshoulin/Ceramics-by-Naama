@@ -321,17 +321,18 @@
 
     .card-img-wrap { position: relative; }
     .card img { width: 100%; aspect-ratio: 4/3; object-fit: cover; display: block; background: var(--border); }
-    .card-img-wrap { position: relative; }
-    .card-main-img {
-      transition: opacity 0.6s ease;
-    }
-    .card-img-b {
+    .card-img-wrap { position: relative; overflow: hidden; }
+    .card-img-wrap img {
       position: absolute;
       inset: 0;
       width: 100%;
       height: 100%;
       object-fit: cover;
+      transition: opacity 0.8s ease;
+      opacity: 0;
     }
+    .card-img-wrap img.visible { opacity: 1; }
+    .card-img-wrap { aspect-ratio: 4/3; display: block; background: var(--border); }
     .multi-indicator {
       position: absolute; bottom: 8px; right: 8px;
       width: 18px; height: 18px; border-radius: 50%;
@@ -717,7 +718,7 @@ function makeCard({ name, imgs, img, units, price }) {
   card.className     = 'card' + (units === 'sold' ? ' is-sold' : '');
   card.innerHTML     = `
     <div class="card-img-wrap">
-      <img class="card-main-img" src="${allImgs[0]}" alt="${name}" loading="lazy"/>
+      <img class="card-main-img visible" src="${allImgs[0]}" alt="${name}" loading="lazy"/>
       ${allImgs.length > 1 ? '<div class="multi-indicator"></div>' : ''}
     </div>
     <div class="card-body">
@@ -728,31 +729,24 @@ function makeCard({ name, imgs, img, units, price }) {
       </div>
     </div>`;
 
-  // Auto-rotate with crossfade — two stacked images swap opacity
+  // Crossfade rotation — stack all images, fade one in at a time
   if (allImgs.length > 1) {
-    const wrap  = card.querySelector('.card-img-wrap');
-    const imgA  = card.querySelector('.card-main-img');
-    // Create second image layer underneath
-    const imgB  = document.createElement('img');
-    imgB.className = 'card-main-img card-img-b';
-    imgB.alt = name;
-    imgB.src = allImgs[1]; // preload next
-    wrap.insertBefore(imgB, imgA); // B behind A
-
-    // Preload all
-    allImgs.forEach(src => { const i = new Image(); i.src = src; });
-
-    let idx = 0, showingA = true;
+    const wrap = card.querySelector('.card-img-wrap');
+    // Replace the single img with a stack of all images
+    wrap.innerHTML = (allImgs.length > 1 ? '<div class="multi-indicator"></div>' : '');
+    const imgEls = allImgs.map((src, i) => {
+      const el = document.createElement('img');
+      el.src = src;
+      el.alt = name;
+      if (i === 0) el.classList.add('visible');
+      wrap.appendChild(el);
+      return el;
+    });
+    let cur = 0;
     setInterval(() => {
-      idx = (idx + 1) % allImgs.length;
-      if (showingA) {
-        imgB.src = allImgs[idx];
-        imgA.style.opacity = '0'; // A fades out, B shows through
-      } else {
-        imgA.src = allImgs[idx];
-        imgA.style.opacity = '1'; // A fades in over B
-      }
-      showingA = !showingA;
+      imgEls[cur].classList.remove('visible');
+      cur = (cur + 1) % imgEls.length;
+      imgEls[cur].classList.add('visible');
     }, 2500);
   }
 
