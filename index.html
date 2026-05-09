@@ -320,7 +320,8 @@
     .card.is-sold { opacity: 0.72; }
 
     .card-img-wrap { position: relative; }
-    .card img { width: 100%; aspect-ratio: 4/3; object-fit: cover; display: block; background: var(--border); transition: opacity 0.2s; }
+    .card img { width: 100%; aspect-ratio: 4/3; object-fit: cover; display: block; background: var(--border); }
+    .card-main-img { transition: opacity 0.35s ease; }
     .multi-indicator {
       position: absolute; bottom: 8px; right: 8px;
       width: 18px; height: 18px; border-radius: 50%;
@@ -717,22 +718,20 @@ function makeCard({ name, imgs, img, units, price }) {
       </div>
     </div>`;
 
-  // Auto-rotate images on hover if multiple
+  // Auto-rotate images if multiple — cycles every 2s automatically
   if (allImgs.length > 1) {
     const imgEl = card.querySelector('.card-main-img');
-    let timer = null, idx = 0;
-    card.addEventListener('mouseenter', () => {
-      timer = setInterval(() => {
-        idx = (idx + 1) % allImgs.length;
-        imgEl.style.opacity = '0';
-        setTimeout(() => { imgEl.src = allImgs[idx]; imgEl.style.opacity = '1'; }, 200);
-      }, 1200);
-    });
-    card.addEventListener('mouseleave', () => {
-      clearInterval(timer); timer = null; idx = 0;
+    // Preload all images
+    allImgs.forEach(src => { const i = new Image(); i.src = src; });
+    let idx = 0;
+    setInterval(() => {
+      idx = (idx + 1) % allImgs.length;
       imgEl.style.opacity = '0';
-      setTimeout(() => { imgEl.src = allImgs[0]; imgEl.style.opacity = '1'; }, 200);
-    });
+      setTimeout(() => {
+        imgEl.src = allImgs[idx];
+        imgEl.style.opacity = '1';
+      }, 350);
+    }, 2500);
   }
 
   card.addEventListener('click', () => openLightbox({ name, imgs: allImgs, units, price }));
