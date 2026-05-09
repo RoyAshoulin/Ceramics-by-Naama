@@ -320,7 +320,19 @@
     .card.is-sold { opacity: 0.72; }
 
     .card-img-wrap { position: relative; }
-    .card img { width: 100%; aspect-ratio: 4/3; object-fit: cover; display: block; background: var(--border); }
+    .card img { width: 100%; aspect-ratio: 4/3; object-fit: cover; display: block; background: var(--border); transition: opacity 0.2s; }
+    .multi-indicator {
+      position: absolute; bottom: 8px; right: 8px;
+      width: 18px; height: 18px; border-radius: 50%;
+      background: rgba(255,255,255,0.85);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .multi-indicator::after { content: "⊞"; font-size: 11px; color: var(--text); line-height:1; }
+    .lb-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: rgba(255,255,255,0.5); cursor: pointer; transition: background 0.2s;
+    }
+    .lb-dot.active { background: white; }
 
     .stock-pill {
       font-family: 'Parmigiano Sans', 'Assistant', sans-serif;
@@ -457,7 +469,12 @@ const CONFIG = {
 <div id="lightbox" onclick="closeLightbox(event)">
   <button id="lightbox-close" onclick="closeLightbox()">×</button>
   <div id="lightbox-inner">
-    <img id="lightbox-img" src="" alt=""/>
+    <div style="position:relative;">
+      <img id="lightbox-img" src="" alt="" style="transition: opacity 0.15s;"/>
+      <button id="lb-prev" onclick="lbPrev()" style="display:none;position:absolute;top:50%;left:10px;transform:translateY(-50%);background:rgba(0,0,0,0.4);color:white;border:none;border-radius:50%;width:36px;height:36px;font-size:1.2rem;cursor:pointer;align-items:center;justify-content:center;">‹</button>
+      <button id="lb-next" onclick="lbNext()" style="display:none;position:absolute;top:50%;right:10px;transform:translateY(-50%);background:rgba(0,0,0,0.4);color:white;border:none;border-radius:50%;width:36px;height:36px;font-size:1.2rem;cursor:pointer;align-items:center;justify-content:center;">›</button>
+      <div id="lb-dots" style="display:none;position:absolute;bottom:10px;left:50%;transform:translateX(-50%);gap:6px;align-items:center;justify-content:center;"></div>
+    </div>
     <div id="lightbox-info">
       <div style="order:1;">
         <div id="lightbox-name"></div>
@@ -503,15 +520,19 @@ function stockStatusText(units) {
   return units === '1' ? 'פריט אחד זמין' : `${units} פריטים זמינים`;
 }
 
-// ── Parse filename: "name_price_tag.jpg" ─────────────────────────────────
+// ── Parse filename: "name(number)_price_tag.jpg" ─────────────────────────
 function parseFilename(rawName) {
-  const noExt = rawName.replace(/\.[^/.]+$/, '');
-  const parts = noExt.split('_');
-  const name  = (parts[0] || '').replace(/-/g, ' ').trim();
-  const price = parts[1] !== undefined && !isNaN(Number(parts[1]))
-                 ? Number(parts[1]) : 'N/A';
-  const tag   = parts[2] ? parts[2].trim().toLowerCase() : 'other';
-  return { name, price, tag };
+  const noExt    = rawName.replace(/\.[^/.]+$/, '');
+  const parts    = noExt.split('_');
+  const namePart = (parts[0] || '').replace(/-/g, ' ').trim();
+  // Extract image number from parentheses e.g. "blue bowl(2)" → name="blue bowl", imgNum=2
+  const parenMatch = namePart.match(/^(.+?)\s*\((\d+)\)\s*$/);
+  const name    = parenMatch ? parenMatch[1].trim() : namePart;
+  const imgNum  = parenMatch ? parseInt(parenMatch[2]) : 1;
+  const price   = parts[1] !== undefined && !isNaN(Number(parts[1]))
+                   ? Number(parts[1]) : 'N/A';
+  const tag     = parts[2] ? parts[2].trim().toLowerCase() : 'other';
+  return { name, price, tag, imgNum };
 }
 
 // ── Fetch images from Drive folder ───────────────────────────────────────
@@ -535,15 +556,34 @@ async function loadAllItems() {
     fetchDriveImages(CONFIG.folderIds["4"]),
     fetchDriveImages(CONFIG.folderIds["sold"]),
   ]);
-  const map = (files, units) => files.map(f => {
-    const { name, price, tag } = parseFilename(f.name);
-    return { name, price, tag, units, img: `https://drive.google.com/thumbnail?id=${f.id}&sz=w800` };
+
+  // Map raw files to individual image objects
+  const mapRaw = (files, units) => files.map(f => {
+    const { name, price, tag, imgNum } = parseFilename(f.name);
+    return { name, price, tag, units, imgNum,
+             img: `https://drive.google.com/thumbnail?id=${f.id}&sz=w800` };
   });
-  allItems = [
-    ...map(f1,"1"), ...map(f2,"2"),
-    ...map(f3,"3"), ...map(f4,"4"),
-    ...map(fSold,"sold"),
+  const raw = [
+    ...mapRaw(f1,"1"), ...mapRaw(f2,"2"),
+    ...mapRaw(f3,"3"), ...mapRaw(f4,"4"),
+    ...mapRaw(fSold,"sold"),
   ];
+
+  // Group by name+price+tag+units → collect all images into imgs[]
+  const groups = {};
+  raw.forEach(r => {
+    const key = `${r.name}||${r.price}||${r.tag}||${r.units}`;
+    if (!groups[key]) groups[key] = { name: r.name, price: r.price,
+                                      tag: r.tag, units: r.units, imgs: [] };
+    groups[key].imgs[r.imgNum - 1] = r.img; // place by index
+  });
+  // Clean up any gaps and ensure at least one image
+  allItems = Object.values(groups).map(g => {
+    g.imgs = g.imgs.filter(Boolean);
+    g.img  = g.imgs[0]; // primary image for backwards compat
+    return g;
+  });
+
   buildDropdown();
 }
 
@@ -658,14 +698,16 @@ function showTag(tag) {
 }
 
 // ── Make card ─────────────────────────────────────────────────────────────
-function makeCard({ name, img, units, price }) {
+function makeCard({ name, imgs, img, units, price }) {
   const meta         = STOCK_META[units];
   const priceDisplay = price === 'N/A' ? '' : `₪${price} ליחידה`;
+  const allImgs      = imgs && imgs.length ? imgs : [img];
   const card         = document.createElement('div');
   card.className     = 'card' + (units === 'sold' ? ' is-sold' : '');
   card.innerHTML     = `
     <div class="card-img-wrap">
-      <img src="${img}" alt="${name}" loading="lazy"/>
+      <img class="card-main-img" src="${allImgs[0]}" alt="${name}" loading="lazy"/>
+      ${allImgs.length > 1 ? '<div class="multi-indicator"></div>' : ''}
     </div>
     <div class="card-body">
       <div class="card-name">${name}</div>
@@ -674,13 +716,36 @@ function makeCard({ name, img, units, price }) {
         <span class="stock-pill ${meta.pillClass}">${meta.label}</span>
       </div>
     </div>`;
-  card.addEventListener('click', () => openLightbox({ name, img, units, price }));
+
+  // Auto-rotate images on hover if multiple
+  if (allImgs.length > 1) {
+    const imgEl = card.querySelector('.card-main-img');
+    let timer = null, idx = 0;
+    card.addEventListener('mouseenter', () => {
+      timer = setInterval(() => {
+        idx = (idx + 1) % allImgs.length;
+        imgEl.style.opacity = '0';
+        setTimeout(() => { imgEl.src = allImgs[idx]; imgEl.style.opacity = '1'; }, 200);
+      }, 1200);
+    });
+    card.addEventListener('mouseleave', () => {
+      clearInterval(timer); timer = null; idx = 0;
+      imgEl.style.opacity = '0';
+      setTimeout(() => { imgEl.src = allImgs[0]; imgEl.style.opacity = '1'; }, 200);
+    });
+  }
+
+  card.addEventListener('click', () => openLightbox({ name, imgs: allImgs, units, price }));
   return card;
 }
 
 // ── Lightbox ──────────────────────────────────────────────────────────────
-function openLightbox({ name, img, units, price }) {
-  document.getElementById('lightbox-img').src           = img;
+let _lbImgs = [], _lbIdx = 0;
+
+function openLightbox({ name, imgs, img, units, price }) {
+  _lbImgs = imgs && imgs.length ? imgs : [img];
+  _lbIdx  = 0;
+  updateLightboxImage();
   document.getElementById('lightbox-name').textContent  = name;
   document.getElementById('lightbox-price').textContent = price === 'N/A' ? '' : ` ₪${price} ליחידה`;
   const statusEl = document.getElementById('lightbox-status');
@@ -694,9 +759,44 @@ function openLightbox({ name, img, units, price }) {
   } else {
     actions.style.display = 'none';
   }
+  // Show/hide nav arrows
+  const prev = document.getElementById('lb-prev');
+  const next = document.getElementById('lb-next');
+  const dots = document.getElementById('lb-dots');
+  if (_lbImgs.length > 1) {
+    prev.style.display = 'flex'; next.style.display = 'flex';
+    updateLightboxDots();
+    dots.style.display = 'flex';
+  } else {
+    prev.style.display = 'none'; next.style.display = 'none';
+    dots.style.display = 'none';
+  }
   document.getElementById('lightbox').classList.add('open');
   document.body.style.overflow = 'hidden';
 }
+
+function updateLightboxImage() {
+  const imgEl = document.getElementById('lightbox-img');
+  imgEl.style.opacity = '0';
+  setTimeout(() => { imgEl.src = _lbImgs[_lbIdx]; imgEl.style.opacity = '1'; }, 150);
+}
+
+function updateLightboxDots() {
+  const dots = document.getElementById('lb-dots');
+  dots.innerHTML = _lbImgs.map((_, i) =>
+    `<span class="lb-dot${i === _lbIdx ? ' active' : ''}" onclick="lbGoTo(${i})"></span>`
+  ).join('');
+}
+
+function lbGoTo(idx) {
+  _lbIdx = idx;
+  updateLightboxImage();
+  updateLightboxDots();
+}
+
+function lbPrev() { lbGoTo((_lbIdx - 1 + _lbImgs.length) % _lbImgs.length); }
+function lbNext() { lbGoTo((_lbIdx + 1) % _lbImgs.length); }
+
 function closeLightbox(e) {
   if (e && e.target !== document.getElementById('lightbox') &&
            e.target !== document.getElementById('lightbox-close')) return;
