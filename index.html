@@ -4,7 +4,10 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Ceramics by Naama</title>
-  <style>@import url("https://use.typekit.net/placeholder.css");</style>
+  <meta name="description" content="Ceramics by Naama — קרמיקה בעבודת יד. גלריית כלים, פרטים ויצירת קשר."/>
+  <link rel="preconnect" href="https://www.googleapis.com"/>
+  <link rel="preconnect" href="https://drive.google.com"/>
+  <link rel="preconnect" href="https://lh3.googleusercontent.com"/>
   <style>
     @font-face {
       font-family: "Parmigiano Sans";
@@ -61,13 +64,6 @@
       align-items: center;
       flex-shrink: 0;
     }
-    #site-logo {
-      height: 52px;
-      max-width: 160px;
-      object-fit: contain;
-      display: none;
-    }
-    #header-name { display: none; }
     #header-home-text {
       font-family: 'Parmigiano Sans', 'Assistant', Georgia, serif;
       font-size: 1.05rem;
@@ -319,9 +315,13 @@
     .card:hover { box-shadow: 0 8px 32px rgba(0,0,0,0.09); transform: translateY(-3px); }
     .card.is-sold { opacity: 0.72; }
 
-    .card-img-wrap { position: relative; }
-    .card img { width: 100%; aspect-ratio: 4/3; object-fit: cover; display: block; background: var(--border); }
-    .card-img-wrap { position: relative; overflow: hidden; }
+    .card-img-wrap {
+      position: relative;
+      overflow: hidden;
+      aspect-ratio: 4/3;
+      display: block;
+      background: var(--border);
+    }
     .card-img-wrap img {
       position: absolute;
       inset: 0;
@@ -332,7 +332,6 @@
       opacity: 0;
     }
     .card-img-wrap img.visible { opacity: 1; }
-    .card-img-wrap { aspect-ratio: 4/3; display: block; background: var(--border); }
     .multi-indicator {
       position: absolute; bottom: 8px; right: 8px;
       width: 18px; height: 18px; border-radius: 50%;
@@ -403,7 +402,6 @@
     /* ── MOBILE ── */
     @media (max-width: 600px) {
       header { padding: 10px 12px; gap: 6px; }
-      #site-logo { height: 38px; max-width: 120px; }
       #header-home-text { font-size: 0.78rem; letter-spacing: 0.02em; }
       .shop-btn { font-size: 0.82rem; }
       .story-btn { font-size: 0.82rem; }
@@ -418,8 +416,10 @@
 ════════════════════════════════════════════════ -->
 <script>
 const CONFIG = {
-  artistName:   "Ceramics by Naama",
-  contactEmail: "naama1993@gmail.com",
+  artistName:      "Ceramics by Naama",
+  contactEmail:    "naama1993@gmail.com",
+  whatsappNumber:  "972526175449",            // international format, no +
+  instagramUrl:    "https://ig.me/m/naama_strauch",
 
   // The "Logo" folder — put "Logo.jpg" (site logo) and "Text.jpg" (splash image) here
   logoFolderId: "12AbiEMX9y7oQjkJN9PXlz-PMW7k579M0",
@@ -496,8 +496,8 @@ const CONFIG = {
       <div id="lightbox-actions" style="display:flex;flex-direction:column;align-items:center;flex-shrink:0;gap:8px;order:2;">
         <div id="lightbox-contact-label" style="font-family:'Parmigiano Sans','Assistant',sans-serif;font-size:0.82rem;color:#8c8078;text-align:center;">לפרטים נוספים:</div>
         <div style="display:flex;gap:10px;">
-          <a id="lightbox-whatsapp" href="#" target="_blank" title="WhatsApp" class="icon-whatsapp"></a>
-          <a id="lightbox-instagram" href="https://ig.me/m/naama_strauch" target="_blank" title="Instagram" class="icon-instagram"></a>
+          <a id="lightbox-whatsapp" href="#" target="_blank" rel="noopener" title="WhatsApp" class="icon-whatsapp"></a>
+          <a id="lightbox-instagram" href="#" target="_blank" rel="noopener" title="Instagram" class="icon-instagram"></a>
         </div>
       </div>
     </div>
@@ -506,8 +506,8 @@ const CONFIG = {
 
 <footer>
   <div class="footer-social">
-    <a id="footer-wa" class="icon-whatsapp" href="https://wa.me/972526175449" target="_blank" title="WhatsApp"></a>
-    <a id="footer-ig" class="icon-instagram" href="https://ig.me/m/naama_strauch" target="_blank" title="Instagram"></a>
+    <a id="footer-wa" class="icon-whatsapp" href="#" target="_blank" rel="noopener" title="WhatsApp"></a>
+    <a id="footer-ig" class="icon-instagram" href="#" target="_blank" rel="noopener" title="Instagram"></a>
     <a class="icon-email" id="footer-mail" href="#" title="Email"></a>
   </div>
   <div id="footer-credit"></div>
@@ -517,6 +517,15 @@ const CONFIG = {
 // ── Setup ─────────────────────────────────────────────────────────────────
 document.getElementById('footer-mail').href      = 'mailto:' + CONFIG.contactEmail;
 document.getElementById('footer-credit').textContent = '© ' + CONFIG.artistName;
+document.getElementById('footer-wa').href           = 'https://wa.me/' + CONFIG.whatsappNumber;
+document.getElementById('footer-ig').href           = CONFIG.instagramUrl;
+document.getElementById('lightbox-instagram').href  = CONFIG.instagramUrl;
+
+// Escape user-controlled text (item names come from Drive filenames)
+function esc(s) {
+  return String(s).replace(/[&<>"']/g, c =>
+    ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
+}
 
 // ── Stock metadata ────────────────────────────────────────────────────────
 const STOCK_META = {
@@ -551,8 +560,9 @@ function parseFilename(rawName) {
 async function fetchDriveImages(folderId) {
   const url = `https://www.googleapis.com/drive/v3/files`
     + `?q=%27${folderId}%27+in+parents+and+mimeType+contains+%27image/%27`
-    + `&fields=files(id,name)&key=${CONFIG.apiKey}`;
-  const res  = await fetch(url);
+    + `&fields=files(id,name)&pageSize=1000&key=${CONFIG.apiKey}`;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`Drive API ${res.status} for folder ${folderId}`);
   const data = await res.json();
   return data.files || [];
 }
@@ -561,13 +571,18 @@ async function fetchDriveImages(folderId) {
 let allItems = [];
 
 async function loadAllItems() {
-  const [f1, f2, f3, f4, fSold] = await Promise.all([
+  // Load folders independently — one failing folder shouldn't empty the whole gallery
+  const results = await Promise.allSettled([
     fetchDriveImages(CONFIG.folderIds["1"]),
     fetchDriveImages(CONFIG.folderIds["2"]),
     fetchDriveImages(CONFIG.folderIds["3"]),
     fetchDriveImages(CONFIG.folderIds["4"]),
     fetchDriveImages(CONFIG.folderIds["sold"]),
   ]);
+  const [f1, f2, f3, f4, fSold] = results.map(r => {
+    if (r.status === 'rejected') { console.error('Folder load failed:', r.reason); return []; }
+    return r.value;
+  });
 
   // Map raw files to individual image objects
   const mapRaw = (files, units) => files.map(f => {
@@ -597,6 +612,12 @@ async function loadAllItems() {
   });
 
   buildDropdown();
+
+  // If nothing loaded because Drive was unreachable, tell the visitor
+  if (!allItems.length && results.some(r => r.status === 'rejected')) {
+    document.getElementById('tag-gallery-grid').innerHTML =
+      '<p class="state-msg">הגלריה לא נטענה כרגע — נסו לרענן את הדף.</p>';
+  }
 }
 
 // ── Build dropdown ────────────────────────────────────────────────────────
@@ -629,8 +650,8 @@ function buildDropdown() {
     const tile = document.createElement('div');
     tile.className = 'tag-tile';
     tile.innerHTML = `
-      <img src="${pick.img}" alt="${tag}" loading="lazy"/>
-      <div class="tag-tile-label">${tag.charAt(0).toUpperCase() + tag.slice(1)}</div>`;
+      <img src="${esc(pick.img)}" alt="${esc(tag)}" loading="lazy"/>
+      <div class="tag-tile-label">${esc(tag.charAt(0).toUpperCase() + tag.slice(1))}</div>`;
     tile.addEventListener('click', () => showTag(tag));
     galleryGrid.appendChild(tile);
   });
@@ -667,13 +688,6 @@ function showStory() {
   document.getElementById('shop-view').style.display   = 'none';
   const sv = document.getElementById('story-view');
   sv.style.display = 'flex';
-  // Force images to load from data-src if not yet loaded
-  ['story-splash-img','story-text-img'].forEach(id => {
-    const img = document.getElementById(id);
-    if (img && img.dataset.src && !img.src.includes('drive.google')) {
-      img.src = img.dataset.src;
-    }
-  });
   document.querySelector('.story-btn').classList.add('active');
   document.querySelectorAll('.dropdown-menu button').forEach(b => b.classList.remove('active'));
   document.getElementById('shop-btn').classList.remove('open');
@@ -695,6 +709,7 @@ function showTag(tag) {
   document.getElementById('view-title').textContent =
     tag.charAt(0).toUpperCase() + tag.slice(1);
   const grid = document.getElementById('shop-grid');
+  clearCardTimers();
   grid.innerHTML = '';
   if (!items.length) {
     grid.innerHTML = `<p class="state-msg">אין פריטים כאן עדיין.</p>`;
@@ -710,6 +725,14 @@ function showTag(tag) {
 }
 
 // ── Make card ─────────────────────────────────────────────────────────────
+// Crossfade timers of the cards currently on screen — cleared before every
+// grid rebuild so discarded cards don't keep ticking in the background.
+let cardTimers = [];
+function clearCardTimers() {
+  cardTimers.forEach(clearInterval);
+  cardTimers = [];
+}
+
 function makeCard({ name, imgs, img, units, price }) {
   const meta         = STOCK_META[units];
   const priceDisplay = price === 'N/A' ? '' : `₪${price} ליחידה`;
@@ -718,11 +741,11 @@ function makeCard({ name, imgs, img, units, price }) {
   card.className     = 'card' + (units === 'sold' ? ' is-sold' : '');
   card.innerHTML     = `
     <div class="card-img-wrap">
-      <img class="card-main-img visible" src="${allImgs[0]}" alt="${name}" loading="lazy"/>
+      <img class="card-main-img visible" src="${esc(allImgs[0])}" alt="${esc(name)}" loading="lazy"/>
       ${allImgs.length > 1 ? '<div class="multi-indicator"></div>' : ''}
     </div>
     <div class="card-body">
-      <div class="card-name">${name}</div>
+      <div class="card-name">${esc(name)}</div>
       <div class="card-bottom">
         ${priceDisplay ? `<div class="card-price">${priceDisplay}</div>` : '<div></div>'}
         <span class="stock-pill ${meta.pillClass}">${meta.label}</span>
@@ -738,16 +761,17 @@ function makeCard({ name, imgs, img, units, price }) {
       const el = document.createElement('img');
       el.src = src;
       el.alt = name;
+      el.loading = 'lazy';
       if (i === 0) el.classList.add('visible');
       wrap.appendChild(el);
       return el;
     });
     let cur = 0;
-    setInterval(() => {
+    cardTimers.push(setInterval(() => {
       imgEls[cur].classList.remove('visible');
       cur = (cur + 1) % imgEls.length;
       imgEls[cur].classList.add('visible');
-    }, 2500);
+    }, 2500));
   }
 
   card.addEventListener('click', () => openLightbox({ name, imgs: allImgs, units, price }));
@@ -770,7 +794,7 @@ function openLightbox({ name, imgs, img, units, price }) {
   if (units !== 'sold') {
     actions.style.display = 'flex';
     document.getElementById('lightbox-whatsapp').href =
-      `https://wa.me/972526175449?text=${encodeURIComponent("היי! ראיתי את המוצר " + name + " באתר ואני אשמח לקבל יותר פרטים לגביו")}`;
+      `https://wa.me/${CONFIG.whatsappNumber}?text=${encodeURIComponent("היי! ראיתי את המוצר " + name + " באתר ואני אשמח לקבל יותר פרטים לגביו")}`;
   } else {
     actions.style.display = 'none';
   }
@@ -878,8 +902,6 @@ async function loadLogoFolder() {
 
   } catch(e) {
     console.error('loadLogoFolder error:', e);
-    const sn = document.getElementById('splash-soon');
-    if (sn) sn.style.display = 'block';
   }
 }
 
