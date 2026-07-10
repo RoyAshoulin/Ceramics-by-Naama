@@ -8,6 +8,9 @@
   <link rel="preconnect" href="https://www.googleapis.com"/>
   <link rel="preconnect" href="https://drive.google.com"/>
   <link rel="preconnect" href="https://lh3.googleusercontent.com"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;600;700&display=swap"/>
   <style>
     @font-face {
       font-family: "Parmigiano Sans";
@@ -394,6 +397,25 @@
       padding: 60px 0;
       font-size: 1rem;
     }
+    .loading-msg {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      direction: rtl;
+    }
+    .loading-msg::before {
+      content: '';
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      border: 2px solid var(--border);
+      border-top-color: var(--accent);
+      animation: spin 0.9s linear infinite;
+      flex-shrink: 0;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
 
     @media (max-width: 768px) {
       #story-splash-img { width: 100vw !important; }
@@ -420,6 +442,7 @@ const CONFIG = {
   contactEmail:    "naama1993@gmail.com",
   whatsappNumber:  "972526175449",            // international format, no +
   instagramUrl:    "https://ig.me/m/naama_strauch",
+  siteUrl:         "https://www.ceramicsbynaama.co.il",
 
   // The "Logo" folder — put "Logo.jpg" (site logo) and "Text.jpg" (splash image) here
   logoFolderId: "12AbiEMX9y7oQjkJN9PXlz-PMW7k579M0",
@@ -539,6 +562,12 @@ const STOCK_META = {
 function stockStatusText(units) {
   if (units === 'sold') return 'נמכר — לא זמין יותר';
   return units === '1' ? 'פריט אחד זמין' : `${units} פריטים זמינים`;
+}
+
+// Price label — "ליחידה" only when more than one unit is available
+function priceText(price, units) {
+  if (price === 'N/A') return '';
+  return `₪${price}` + (['2','3','4'].includes(units) ? ' ליחידה' : '');
 }
 
 // ── Parse filename: "name(number)_price_tag.jpg" ─────────────────────────
@@ -669,6 +698,42 @@ document.addEventListener('click', e => {
   }
 });
 
+// ── History / back-button support ─────────────────────────────────────────
+// Each view change pushes a history entry (#story, #gallery/<tag>), so the
+// browser back button moves between views instead of leaving the site.
+let suppressHistory = false;
+let currentViewKey  = 'home';
+
+function syncHistory(key, hash) {
+  if (suppressHistory || currentViewKey === key) return;
+  currentViewKey = key;
+  history.pushState(null, '', hash || location.pathname + location.search);
+}
+
+function renderFromHash() {
+  let hash = location.hash;
+  try { hash = decodeURIComponent(hash); } catch (e) {}
+  suppressHistory = true;
+  if (hash.startsWith('#gallery/')) {
+    const tag = hash.slice('#gallery/'.length);
+    if (allItems.some(i => i.tag === tag)) {
+      currentViewKey = 'tag:' + tag;
+      showTag(tag);
+    } else {
+      currentViewKey = 'home';
+      showSplash();
+    }
+  } else if (hash === '#story') {
+    currentViewKey = 'story';
+    showStory();
+  } else {
+    currentViewKey = 'home';
+    showSplash();
+  }
+  suppressHistory = false;
+}
+window.addEventListener('popstate', renderFromHash);
+
 // ── Show splash ───────────────────────────────────────────────────────────
 function showSplash() {
   document.getElementById('splash').style.display      = 'flex';
@@ -679,6 +744,7 @@ function showSplash() {
   document.querySelector('.story-btn').classList.remove('active');
   document.getElementById('shop-btn').classList.remove('open');
   document.getElementById('dropdown-menu').classList.remove('open');
+  syncHistory('home', '');
 }
 
 // ── Show story page ───────────────────────────────────────────────
@@ -692,6 +758,7 @@ function showStory() {
   document.querySelectorAll('.dropdown-menu button').forEach(b => b.classList.remove('active'));
   document.getElementById('shop-btn').classList.remove('open');
   document.getElementById('dropdown-menu').classList.remove('open');
+  syncHistory('story', '#story');
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
@@ -721,6 +788,7 @@ function showTag(tag) {
   document.getElementById('story-view').style.display  = 'none';
   document.getElementById('shop-view').style.display   = 'block';
   document.querySelector('.story-btn').classList.remove('active');
+  syncHistory('tag:' + tag, '#gallery/' + encodeURIComponent(tag));
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
@@ -735,7 +803,7 @@ function clearCardTimers() {
 
 function makeCard({ name, imgs, img, units, price }) {
   const meta         = STOCK_META[units];
-  const priceDisplay = price === 'N/A' ? '' : `₪${price} ליחידה`;
+  const priceDisplay = priceText(price, units);
   const allImgs      = imgs && imgs.length ? imgs : [img];
   const card         = document.createElement('div');
   card.className     = 'card' + (units === 'sold' ? ' is-sold' : '');
@@ -786,15 +854,16 @@ function openLightbox({ name, imgs, img, units, price }) {
   _lbIdx  = 0;
   updateLightboxImage();
   document.getElementById('lightbox-name').textContent  = name;
-  document.getElementById('lightbox-price').textContent = price === 'N/A' ? '' : ` ₪${price} ליחידה`;
+  document.getElementById('lightbox-price').textContent = priceText(price, units);
   const statusEl = document.getElementById('lightbox-status');
   statusEl.textContent = stockStatusText(units);
   statusEl.style.color = units === 'sold' ? '#7a4a4a' : '#4a7a4a';
   const actions = document.getElementById('lightbox-actions');
   if (units !== 'sold') {
     actions.style.display = 'flex';
+    const waMsg = "היי! ראיתי את המוצר " + name + " באתר ואני אשמח לקבל יותר פרטים לגביו\n" + CONFIG.siteUrl;
     document.getElementById('lightbox-whatsapp').href =
-      `https://wa.me/${CONFIG.whatsappNumber}?text=${encodeURIComponent("היי! ראיתי את המוצר " + name + " באתר ואני אשמח לקבל יותר פרטים לגביו")}`;
+      `https://wa.me/${CONFIG.whatsappNumber}?text=${encodeURIComponent(waMsg)}`;
   } else {
     actions.style.display = 'none';
   }
@@ -842,6 +911,28 @@ function closeLightbox(e) {
   document.getElementById('lightbox').classList.remove('open');
   document.body.style.overflow = '';
 }
+
+// Keyboard — Escape closes, arrow keys match the on-screen ‹ › buttons
+document.addEventListener('keydown', e => {
+  if (!document.getElementById('lightbox').classList.contains('open')) return;
+  if (e.key === 'Escape') closeLightbox();
+  else if (e.key === 'ArrowLeft'  && _lbImgs.length > 1) lbPrev();
+  else if (e.key === 'ArrowRight' && _lbImgs.length > 1) lbNext();
+});
+
+// Touch — horizontal swipe on the image navigates between photos
+let _lbTouchStart = null;
+const _lbImgWrap = document.getElementById('lightbox-img').parentElement;
+_lbImgWrap.addEventListener('touchstart', e => {
+  _lbTouchStart = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+}, { passive: true });
+_lbImgWrap.addEventListener('touchend', e => {
+  if (!_lbTouchStart || _lbImgs.length < 2) { _lbTouchStart = null; return; }
+  const dx = e.changedTouches[0].clientX - _lbTouchStart.x;
+  const dy = e.changedTouches[0].clientY - _lbTouchStart.y;
+  _lbTouchStart = null;
+  if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy)) (dx > 0 ? lbPrev() : lbNext());
+}, { passive: true });
 
 // ── Load logo folder (Logo + Text images) ────────────────────────────────
 async function loadLogoFolder() {
@@ -908,7 +999,11 @@ async function loadLogoFolder() {
 // ── Init ──────────────────────────────────────────────────────────────────
 async function init() {
   showSplash();
+  document.getElementById('tag-gallery-grid').innerHTML =
+    '<p class="state-msg loading-msg">טוען גלריה…</p>';
   await Promise.all([loadLogoFolder(), loadAllItems()]);
+  // Deep link: render #gallery/<tag> or #story once items are available
+  if (location.hash) renderFromHash();
 }
 init();
 </script>
